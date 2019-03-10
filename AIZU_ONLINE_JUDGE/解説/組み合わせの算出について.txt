@@ -1,0 +1,14 @@
+
+■ itp1_7_b_1.py
+・問題
+How many ways?
+組み合わせを算出する問題。
+
+・結果
+結果は正しいが、計算時間が長い(4秒)
+
+
+・参考URL
+https://qiita.com/BlueSilverCat/items/77f4e11d3930d7b8959b
+
+
