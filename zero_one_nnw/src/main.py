@@ -6,7 +6,6 @@ from zero_one_nnw import ZeroOneNNW
 
 def main():
     """メイン処理。"""
-
     train_data, train_label = read_train_data()
 
     model = ZeroOneNNW()

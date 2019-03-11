@@ -8,7 +8,13 @@ class ZeroOneNNW:
     """数字の1か0かを判定するNNW。"""
 
     def __init__(self):
-        pass
+        self.layer_1_in = np.zeros(12)  # 入力層のインプット
+        self.layer_1_out = np.zeros(12)  # 入力層の出力
+        self.layer_2_in = np.zeros(3)  # 中間層の入力
+        self.layer_2_out = np.zeros(3)  # 中間層の出力
+        self.layer_3_in = np.zeros(2)  # 出力層の入力
+        self.layer_3_out = np.zeros(2)  # 出力層の出力
+        # self.w_1[]
 
     def fit(self, train_data: List[List[int]], train_label: List[int]):
         """モデルの学習を行う。
