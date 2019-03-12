@@ -15,8 +15,7 @@ class ZeroOneNNW:
     unit_num_layer_3 = 2
 
     def __init__(self):
-        """コンストラクタ。
-        """
+        """コンストラクタ。"""
         # 入力層の入力ユニット
         self.layer_1_in = np.zeros(self.unit_num_layer_1)
         # 入力層の出力ユニット
@@ -55,25 +54,25 @@ class ZeroOneNNW:
             eta (float): 学習係数
         """
         data_num = len(train_data)
-        # 重み行列1の微分
-        error_w_1 = np.zeros((data_num, 3, 12))
-        # 中間層のバイアスの微分
-        error_b_1 = np.zeros((data_num, 2))
-        # 重み行列2の微分
-        error_w_2 = np.zeros((data_num, 2, 3))
-        # 出力層のバイアスの微分
-        error_b_2 = np.zeros((data_num, 2))
+        # 中間層への重み行列の勾配
+        w_1_gradient = np.zeros(3, 12)
+        # 出力層への重み行列2の勾配
+        w_2_gradient = np.zeros(2, 3)
+        # 中間層へのバイアスの勾配
+        b_1_gradient = np.zeros(3)
+        # 出力層へのバイアスの勾配
+        b_2_gradient = np.zeros(2)
         # 各データのコスト
         cost = np.zeros(data_num)
 
         for e in range(epoc):
             for t_data, t_label in zip(train_data, train_label):
                 self.__forward(t_data, t_label, cost)
-                self.__backpropagation(error_w_1, error_b_1, error_w_2,
-                                       error_b_2)
-            self.__update_parameter(eta, error_w_1, error_b_1, error_w_2,
-                                    error_b_2)
-            print(f'epoc: {e} cost: {self.__get_cost()}')
+                self.__backpropagation(
+                    w_1_gradient, w_2_gradient, b_1_gradient, b_2_gradient)
+            self.__update_parameter(
+                eta, w_1_gradient, w_2_gradient, b_1_gradient, b_2_gradient)
+            print(f'epoc: {e} cost: {self.__get_cost(cost)}')
 
     def __forward(self, t_data: List[int], t_label: List[int],
                   cost: np.ndarray) -> None:
@@ -91,15 +90,15 @@ class ZeroOneNNW:
         # 入力データのコスト計算
         pass
 
-    def __backpropagation(self, error_w_1: np.ndarry, error_b_1: np.ndarry,
-                          error_w_2: np.ndarry, error_b_2: np.ndarry) -> None:
+    def __backpropagation(self, w_1_gradient: np.ndarry, w_2_gradient: np.ndarry,
+                          b_1_gradient: np.ndarry, b_2_gradient: np.ndarry) -> None:
         """重みとバイアスの微分を求める。
 
         Args:
-            error_w_1 (np.ndarry): 中間層への重みの微分を格納する配列
-            error_b_1 (np.ndarry): 中間層へのバイアスの微分を格納する配列
-            error_w_2 (np.ndarry): 出力層への重みの微分を格納する配列
-            error_b_2 (np.ndarry): 出力層へのバイアスの微分を格納する配列
+            w_1_gradient (np.ndarry): 中間層への重みの勾配
+            w_2_gradient (np.ndarry): 中間層へのバイアスの勾配
+            b_1_gradient (np.ndarry): 出力層への重みの勾配
+            b_2_gradient (np.ndarry): 出力層へのバイアスの勾配
         """
         # 出力層の出力ユニットの誤差
         error_3_out = np.zeros(2)
@@ -110,26 +109,35 @@ class ZeroOneNNW:
         # 中間層の入力ユニットの誤差
         error_2_in = np.zeros(3)
 
+        # 重み行列1の微分
+        error_w_1 = np.zeros((3, 12))
+        # 中間層のバイアスの微分
+        error_b_1 = np.zeros((2))
+        # 重み行列2の微分
+        error_w_2 = np.zeros((2, 3))
+        # 出力層のバイアスの微分
+        error_b_2 = np.zeros((2))
+
         # 誤差と微分を計算
+        # w_1_gradient, w_2_gradient, b を算出。アイテムごとの重みとバイアスの微分を足し合わせる
         pass
 
-    def __update_parameter(self, eta: float, error_w_1: np.ndarry,
-                           error_b_1: np.ndarry, error_w_2: np.ndarry,
-                           error_b_2: np.ndarry) -> None:
+    def __update_parameter(self, eta: float, w_1_gradient: np.ndarry,
+                           w_2_gradient: np.ndarry,
+                           b_1_gradient: np.ndarry, b_2_gradient: np.ndarry) -> None:
         """重みとバイアスを更新する。
 
         Args:
             eta (float): 学習係数
-            error_w_1 (np.ndarry): 中間層への重みの微分を格納する配列
-            error_b_1 (np.ndarry): 中間層へのバイアスの微分を格納する配列
-            error_w_2 (np.ndarry): 出力層への重みの微分を格納する配列
-            error_b_2 (np.ndarry): 出力層へのバイアスの微分を格納する配列
+            w_1_gradient (np.ndarry): 中間層への重みの勾配
+            w_2_gradient (np.ndarry): 中間層へのバイアスの勾配
+            b_1_gradient (np.ndarry): 出力層への重みの勾配
+            b_2_gradient (np.ndarry): 出力層へのバイアスの勾配
         """
-        # 重みとバイアスを各データごとに値を足し合わせる。
-        # 前回の値に、微分した値とイータをかけ合わせた値をかけたものを足し合わせる。
+        # self.w, self.bに、w_1_gradientとイータをかけ合わせた値をかけたものを足し合わせる。
         pass
 
-    def __get_cost(self, cost: np.ndarray) -> float:
+    def __get_total_cost(self, cost: np.ndarray) -> float:
         """トータルコストを取得する。
 
         Args:
