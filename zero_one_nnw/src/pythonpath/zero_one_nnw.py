@@ -87,7 +87,7 @@ class ZeroOneNNW:
         Args:
             t_data (List[int]): 学習データ1件
             t_label (List[int]): 学習ラベル1件
-            cost (np.ndarray):
+            cost (np.ndarray): コスト
             data_num (int): データ番号
         """
         self.__initialize_layer()
@@ -118,29 +118,31 @@ class ZeroOneNNW:
         # 各レイヤーの微分を計算
 
         # 出力層の出力ユニットの微分
-        error_3_out = self.layer_3_out - t_label
+        l_3_out_error = self.layer_3_out - t_label
         # 出力層の入力ユニットの微分
-        error_3_in = error_3_out * self.__derivative_sigmoid(self.layer_3_in)
+        l_3_in_error = l_3_out_error * \
+            self.__derivative_sigmoid(self.layer_3_in)
         # 出力層への重み行列の微分
-        error_w_2 = np.dot(np.array([error_3_in] for i in range(3)).T,
+        w_2_error = np.dot(np.array([l_3_in_error] for i in range(3)).T,
                            self.layer_2_out)
         # 出力層へのバイアスの微分
-        error_b_2 = error_3_in
+        b_2_error = l_3_in_error
         # 中間層の出力ユニットの微分
-        error_2_out = np.dot(self.w_2.T, error_3_in)
+        l_2_out_error = np.dot(self.w_2.T, l_3_in_error)
         # 中間層の入力ユニットの微分
-        error_2_in = error_2_out * self.__derivative_sigmoid(self.layer_2_in)
+        l_2_in_error = l_2_out_error * \
+            self.__derivative_sigmoid(self.layer_2_in)
         # 中間層への重み行列の微分
-        error_w_1 = np.dot(np.array([error_2_in] for i in range(12)).T,
+        w_1_error = np.dot(np.array([l_2_in_error] for i in range(12)).T,
                            self.layer_1_out)
         # 中間層へのバイアスの微分
-        error_b_1 = error_2_in
+        b_1_error = l_2_in_error
 
         # 勾配の計算(アイテムごとの微分を足し合わせる)
-        w_1_gradient += error_w_1
-        b_1_gradient += error_b_1
-        w_2_gradient += error_w_2
-        b_2_gradient += error_b_2
+        w_1_gradient += w_1_error
+        b_1_gradient += b_1_error
+        w_2_gradient += w_2_error
+        b_2_gradient += b_2_error
 
     def __update_parameter(self, eta: float, w_1_gradient: np.ndarry,
                            w_2_gradient: np.ndarry,
@@ -159,27 +161,16 @@ class ZeroOneNNW:
         self.b_1 += eta * b_1_gradient
         self.b_2 += eta * b_2_gradient
 
-    def __get_total_cost(self, cost: np.ndarray) -> float:
-        """トータルコストを取得する。
-
-        Args:
-            cost (np.ndarray): データごとのコストを格納する配列
-
-        Returns:
-            float: トータルコスト
-        """
-        # コスト取得(各データごとのコストを足し合わせる)
-        return cost.sum()
-
-    def predict(self, test_data: List[List[int]]) -> List[str]:
+    def predict(self, test_data: List[List[int]]) -> List[(int, float, float)]:
         """学習したモデルを用いて予測を行う。
 
         Args:
             test_data (List[List[int]]): テストデータの配列
 
         Returns:
-            List[str]: 予測結果の配列
+            List[(int, float, float)]: テストデータの予測結果(ラベル、1の確信度、2の確信度)
         """
+        # Forwardの計算をして、最終ユニットの値を確信度として返す。
         pass
 
     def __initialize_layer(self):
