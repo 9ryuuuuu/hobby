@@ -75,7 +75,7 @@ class ZeroOneNNW:
                     t_label, w_1_gradient, w_2_gradient, b_1_gradient, b_2_gradient)
             self.__update_parameter(
                 eta, w_1_gradient, w_2_gradient, b_1_gradient, b_2_gradient)
-            print(f'epoc: {e} cost: {self.__get_total_cost(cost)}')
+            print(f'epoc: {e} cost: {cost.sum())}')
 
     def __forward(self, t_data: List[int], t_label: List[int],
                   cost: np.ndarray, data_num: int) -> None:
@@ -115,28 +115,32 @@ class ZeroOneNNW:
             b_1_gradient (np.ndarry): 出力層への重みの勾配
             b_2_gradient (np.ndarry): 出力層へのバイアスの勾配
         """
-        # 出力層の出力ユニットの微分
-        error_3_out = np.zeros(self.unit_num_layer_3)
-        # 出力層の入力ユニットの微分
-        error_3_in = np.zeros(self.unit_num_layer_3)
-        # 出力層への重み行列の微分
-        error_w_2 = np.zeros((self.unit_num_layer_3, self.unit_num_layer_2))
-        # 出力層へのバイアスの微分
-        error_b_2 = np.zeros((self.unit_num_layer_3))
-        # 中間層の出力ユニットの微分
-        error_2_out = np.zeros(self.unit_num_layer_2)
-        # 中間層の入力ユニットの微分
-        error_2_in = np.zeros(self.unit_num_layer_2)
-        # 中間層への重み行列の微分
-        error_w_1 = np.zeros((self.unit_num_layer_2, self.unit_num_layer_1))
-        # 中間層へのバイアスの微分
-        error_b_1 = np.zeros((self.unit_num_layer_2))
-
         # 各レイヤーの微分を計算
-        error_3_out = self.layer_3_out - t_label
-        error_3_in = error_3_out * self.__derivative_sigmoid(self.layer_3_in)
 
-        # w_1_gradient, w_2_gradient, b を算出。アイテムごとに、重みとバイアスの微分を足し合わせる
+        # 出力層の出力ユニットの微分
+        error_3_out = self.layer_3_out - t_label
+        # 出力層の入力ユニットの微分
+        error_3_in = error_3_out * self.__derivative_sigmoid(self.layer_3_in)
+        # 出力層への重み行列の微分
+        error_w_2 = np.dot(np.array([error_3_in] for i in range(3)).T,
+                           self.layer_2_out)
+        # 出力層へのバイアスの微分
+        error_b_2 = error_3_in
+        # 中間層の出力ユニットの微分
+        error_2_out = np.dot(self.w_2.T, error_3_in)
+        # 中間層の入力ユニットの微分
+        error_2_in = error_2_out * self.__derivative_sigmoid(self.layer_2_in)
+        # 中間層への重み行列の微分
+        error_w_1 = np.dot(np.array([error_2_in] for i in range(12)).T,
+                           self.layer_1_out)
+        # 中間層へのバイアスの微分
+        error_b_1 = error_2_in
+
+        # 勾配の計算(アイテムごとの微分を足し合わせる)
+        w_1_gradient += error_w_1
+        b_1_gradient += error_b_1
+        w_2_gradient += error_w_2
+        b_2_gradient += error_b_2
 
     def __update_parameter(self, eta: float, w_1_gradient: np.ndarry,
                            w_2_gradient: np.ndarry,
@@ -150,8 +154,10 @@ class ZeroOneNNW:
             b_1_gradient (np.ndarry): 出力層への重みの勾配
             b_2_gradient (np.ndarry): 出力層へのバイアスの勾配
         """
-        # self.w, self.bに、w_1_gradientとイータをかけ合わせた値をかけたものを足し合わせる。
-        pass
+        self.w_1 += eta * w_1_gradient
+        self.w_2 += eta * w_2_gradient
+        self.b_1 += eta * b_1_gradient
+        self.b_2 += eta * b_2_gradient
 
     def __get_total_cost(self, cost: np.ndarray) -> float:
         """トータルコストを取得する。
@@ -163,7 +169,7 @@ class ZeroOneNNW:
             float: トータルコスト
         """
         # コスト取得(各データごとのコストを足し合わせる)
-        pass
+        return cost.sum()
 
     def predict(self, test_data: List[List[int]]) -> List[str]:
         """学習したモデルを用いて予測を行う。
