@@ -1,7 +1,7 @@
 """数字の1か0かを判定するNNW。"""
 
 import numpy as np
-from typing import List
+from typing import List, Tuple
 
 
 class ZeroOneNNW:
@@ -76,7 +76,7 @@ class ZeroOneNNW:
                                        b_1_gradient, b_2_gradient)
             self.__update_parameter(eta, w_1_gradient, w_2_gradient,
                                     b_1_gradient, b_2_gradient)
-            print(f'epoc: {e} cost: {cost.sum())}')
+            print(f'epoc: {e} cost: {cost.sum()}')
 
     def __forward(self, t_data: List[int], data_num: int) -> None:
         """Forwardの計算を行う。
@@ -98,17 +98,17 @@ class ZeroOneNNW:
         self.layer_3_in = np.dot(self.w_2, self.layer_3_in) + self.b_2
         self.layer_3_out = self.__sigmoid(self.layer_3_in)
 
-    def __backpropagation(self, t_label: List[int], w_1_gradient: np.ndarry,
-                          w_2_gradient: np.ndarry, b_1_gradient: np.ndarry,
-                          b_2_gradient: np.ndarry) -> None:
+    def __backpropagation(self, t_label: List[int], w_1_gradient: np.ndarray,
+                          w_2_gradient: np.ndarray, b_1_gradient: np.ndarray,
+                          b_2_gradient: np.ndarray) -> None:
         """重みとバイアスの微分を求める。
 
         Args:
             t_label (List[int]): 学習ラベル1件
-            w_1_gradient (np.ndarry): 中間層への重みの勾配
-            w_2_gradient (np.ndarry): 中間層へのバイアスの勾配
-            b_1_gradient (np.ndarry): 出力層への重みの勾配
-            b_2_gradient (np.ndarry): 出力層へのバイアスの勾配
+            w_1_gradient (np.ndarray): 中間層への重みの勾配
+            w_2_gradient (np.ndarray): 中間層へのバイアスの勾配
+            b_1_gradient (np.ndarray): 出力層への重みの勾配
+            b_2_gradient (np.ndarray): 出力層へのバイアスの勾配
         """
         # 各レイヤーの微分を計算
 
@@ -139,24 +139,25 @@ class ZeroOneNNW:
         w_2_gradient += w_2_error
         b_2_gradient += b_2_error
 
-    def __update_parameter(self, eta: float, w_1_gradient: np.ndarry,
-                           w_2_gradient: np.ndarry, b_1_gradient: np.ndarry,
-                           b_2_gradient: np.ndarry) -> None:
+    def __update_parameter(self, eta: float, w_1_gradient: np.ndarray,
+                           w_2_gradient: np.ndarray, b_1_gradient: np.ndarray,
+                           b_2_gradient: np.ndarray) -> None:
         """重みとバイアスを更新する。
 
         Args:
             eta (float): 学習係数
-            w_1_gradient (np.ndarry): 中間層への重みの勾配
-            w_2_gradient (np.ndarry): 中間層へのバイアスの勾配
-            b_1_gradient (np.ndarry): 出力層への重みの勾配
-            b_2_gradient (np.ndarry): 出力層へのバイアスの勾配
+            w_1_gradient (np.ndarray): 中間層への重みの勾配
+            w_2_gradient (np.ndarray): 中間層へのバイアスの勾配
+            b_1_gradient (np.ndarray): 出力層への重みの勾配
+            b_2_gradient (np.ndarray): 出力層へのバイアスの勾配
         """
         self.w_1 += eta * w_1_gradient
         self.w_2 += eta * w_2_gradient
         self.b_1 += eta * b_1_gradient
         self.b_2 += eta * b_2_gradient
 
-    def predict(self, test_data: List[List[int]]) -> List[(int, float, float)]:
+    def predict(self,
+                test_data: List[List[int]]) -> List[Tuple[int, float, float]]:
         """学習したモデルを用いて予測を行う。
 
         Args:
@@ -181,7 +182,7 @@ class ZeroOneNNW:
         self.layer_3_in *= 0
         self.layer_3_out *= 0
 
-    def __sigmoid(x: np.array) -> np.darray:
+    def __sigmoid(x: np.ndarray) -> np.ndarray:
         return 1 / (1 + np.exp(-x))
 
     def __derivative_sigmoid(self, x: np.ndarray) -> np.ndarray:
