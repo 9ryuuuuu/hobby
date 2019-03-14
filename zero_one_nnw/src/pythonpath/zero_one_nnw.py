@@ -31,13 +31,13 @@ class ZeroOneNNW:
         self.layer_3_out = np.zeros(self.unit_num_layer_3)
 
         # 中間層への重み行列
-        self.w_1 = np.random.randn(
-            self.unit_num_layer_2, self.unit_num_layer_1)
+        self.w_1 = np.random.randn(self.unit_num_layer_2,
+                                   self.unit_num_layer_1)
         # 中間層へのバイアス
         self.b_1 = np.zeros(self.unit_num_layer_2)
         # 出力層への重み行列
-        self.w_2 = np.random.randn(
-            self.unit_num_layer_3, self.unit_num_layer_2)
+        self.w_2 = np.random.randn(self.unit_num_layer_3,
+                                   self.unit_num_layer_2)
         # 出力層へのバイアス
         self.b_2 = np.zeros(self.unit_num_layer_3)
 
@@ -70,15 +70,15 @@ class ZeroOneNNW:
 
         for e in range(epoc):
             for i, t_data, t_label in enumerate(zip(train_data, train_label)):
-                self.__forward(t_data, t_label, cost, i)
-                self.__backpropagation(
-                    t_label, w_1_gradient, w_2_gradient, b_1_gradient, b_2_gradient)
-            self.__update_parameter(
-                eta, w_1_gradient, w_2_gradient, b_1_gradient, b_2_gradient)
+                self.__forward(t_data, i)
+                cost[i] = ((self.layer_3_out - t_label)**2).sum()
+                self.__backpropagation(t_label, w_1_gradient, w_2_gradient,
+                                       b_1_gradient, b_2_gradient)
+            self.__update_parameter(eta, w_1_gradient, w_2_gradient,
+                                    b_1_gradient, b_2_gradient)
             print(f'epoc: {e} cost: {cost.sum())}')
 
-    def __forward(self, t_data: List[int], t_label: List[int],
-                  cost: np.ndarray, data_num: int) -> None:
+    def __forward(self, t_data: List[int], data_num: int) -> None:
         """Forwardの計算を行う。
 
         データ毎のコストを算出する。
@@ -86,8 +86,6 @@ class ZeroOneNNW:
 
         Args:
             t_data (List[int]): 学習データ1件
-            t_label (List[int]): 学習ラベル1件
-            cost (np.ndarray): コスト
             data_num (int): データ番号
         """
         self.__initialize_layer()
@@ -99,9 +97,6 @@ class ZeroOneNNW:
         self.layer_2_out = self.__sigmoid(self.layer_2_in)
         self.layer_3_in = np.dot(self.w_2, self.layer_3_in) + self.b_2
         self.layer_3_out = self.__sigmoid(self.layer_3_in)
-
-        # 入力データのコスト計算
-        cost[data_num] = ((self.layer_3_out - t_label)**2).sum()
 
     def __backpropagation(self, t_label: List[int], w_1_gradient: np.ndarry,
                           w_2_gradient: np.ndarry, b_1_gradient: np.ndarry,
@@ -123,8 +118,8 @@ class ZeroOneNNW:
         l_3_in_error = l_3_out_error * \
             self.__derivative_sigmoid(self.layer_3_in)
         # 出力層への重み行列の微分
-        w_2_error = np.dot(np.array([l_3_in_error] for i in range(3)).T,
-                           self.layer_2_out)
+        w_2_error = np.dot(
+            np.array([l_3_in_error] for i in range(3)).T, self.layer_2_out)
         # 出力層へのバイアスの微分
         b_2_error = l_3_in_error
         # 中間層の出力ユニットの微分
@@ -133,8 +128,8 @@ class ZeroOneNNW:
         l_2_in_error = l_2_out_error * \
             self.__derivative_sigmoid(self.layer_2_in)
         # 中間層への重み行列の微分
-        w_1_error = np.dot(np.array([l_2_in_error] for i in range(12)).T,
-                           self.layer_1_out)
+        w_1_error = np.dot(
+            np.array([l_2_in_error] for i in range(12)).T, self.layer_1_out)
         # 中間層へのバイアスの微分
         b_1_error = l_2_in_error
 
@@ -145,8 +140,8 @@ class ZeroOneNNW:
         b_2_gradient += b_2_error
 
     def __update_parameter(self, eta: float, w_1_gradient: np.ndarry,
-                           w_2_gradient: np.ndarry,
-                           b_1_gradient: np.ndarry, b_2_gradient: np.ndarry) -> None:
+                           w_2_gradient: np.ndarry, b_1_gradient: np.ndarry,
+                           b_2_gradient: np.ndarry) -> None:
         """重みとバイアスを更新する。
 
         Args:
@@ -170,8 +165,12 @@ class ZeroOneNNW:
         Returns:
             List[(int, float, float)]: テストデータの予測結果(ラベル、1の確信度、2の確信度)
         """
-        # Forwardの計算をして、最終ユニットの値を確信度として返す。
-        pass
+        ret_list = []
+        for i, t_data in enumerate(test_data):
+            self.__forward(t_data, i)
+            label = 0 if self.layer_3_out[0] > self.layer_3_out[1] else 1
+            ret_list.append(label, self.layer_3_out[0], self.layer_3_out[1])
+        return ret_list
 
     def __initialize_layer(self):
         """各レイヤーのユニットの値を初期化(ゼロクリア)する。"""
