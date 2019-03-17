@@ -4,22 +4,12 @@ from typing import List
 from zero_one_nnw import ZeroOneNNW
 
 
-def __main():
-    """メイン処理。"""
-    train_data_path = './input_data/train_data.tsv'
-    train_label_path = './input_data/train_label.tsv'
-    test_data_path = './input_data/test_data.tsv'
-    result_path = './result.tsv'
-    train_data, train_label = read_train_data(train_data_path,
-                                              train_label_path)
-
-
 def main():
     """メイン処理。"""
     train_data_path = './input_data/train_data.tsv'
     train_label_path = './input_data/train_label.tsv'
     test_data_path = './input_data/test_data.tsv'
-    result_path = './result.tsv'
+    result_path = './result/result.tsv'
     train_data, train_label = read_train_data(train_data_path,
                                               train_label_path)
 

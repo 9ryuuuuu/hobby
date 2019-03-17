@@ -45,7 +45,7 @@ class ZeroOneNNW:
             train_data: List[List[int]],
             train_label: List[List[int]],
             epoc: int = 50,
-            eta: float = 0.01) -> None:
+            eta: float = 0.1) -> None:
         """モデルの学習を行う。
 
         重みとバイアスを更新する。
@@ -58,18 +58,18 @@ class ZeroOneNNW:
         """
 
         # 中間層への重み行列の勾配
-        w_1_gradient = np.zeros(self.unit_num_layer_2, self.unit_num_layer_1)
+        w_1_gradient = np.zeros((self.unit_num_layer_2, self.unit_num_layer_1))
         # 中間層へのバイアスの勾配
         b_1_gradient = np.zeros(self.unit_num_layer_2)
         # 出力層への重み行列の勾配
-        w_2_gradient = np.zeros(self.unit_num_layer_3, self.unit_num_layer_2)
+        w_2_gradient = np.zeros((self.unit_num_layer_3, self.unit_num_layer_2))
         # 出力層へのバイアスの勾配
         b_2_gradient = np.zeros(self.unit_num_layer_3)
         # 各データのコスト
         cost = np.zeros(len(train_data))
 
         for e in range(epoc):
-            for i, t_data, t_label in enumerate(zip(train_data, train_label)):
+            for i, (t_data, t_label) in enumerate(zip(train_data, train_label)):
                 self.__forward(t_data, i)
                 cost[i] = ((self.layer_3_out - t_label)**2).sum()
                 self.__backpropagation(t_label, w_1_gradient, w_2_gradient,
@@ -95,7 +95,7 @@ class ZeroOneNNW:
         self.layer_1_out = self.layer_1_in
         self.layer_2_in = np.dot(self.w_1, self.layer_1_out) + self.b_1
         self.layer_2_out = self.__sigmoid(self.layer_2_in)
-        self.layer_3_in = np.dot(self.w_2, self.layer_3_in) + self.b_2
+        self.layer_3_in = np.dot(self.w_2, self.layer_2_out) + self.b_2
         self.layer_3_out = self.__sigmoid(self.layer_3_in)
 
     def __backpropagation(self, t_label: List[int], w_1_gradient: np.ndarray,
@@ -118,8 +118,8 @@ class ZeroOneNNW:
         l_3_in_error = l_3_out_error * \
             self.__derivative_sigmoid(self.layer_3_in)
         # 出力層への重み行列の微分
-        w_2_error = np.dot(
-            np.array([l_3_in_error] for i in range(3)).T, self.layer_2_out)
+        w_2_error = np.array([self.layer_2_out * l_3_in_error[i]
+                              for i in range(2)])
         # 出力層へのバイアスの微分
         b_2_error = l_3_in_error
         # 中間層の出力ユニットの微分
@@ -128,12 +128,14 @@ class ZeroOneNNW:
         l_2_in_error = l_2_out_error * \
             self.__derivative_sigmoid(self.layer_2_in)
         # 中間層への重み行列の微分
-        w_1_error = np.dot(
-            np.array([l_2_in_error] for i in range(12)).T, self.layer_1_out)
+        w_1_error = np.array([self.layer_1_out * l_2_in_error[i]
+                              for i in range(3)])
         # 中間層へのバイアスの微分
         b_1_error = l_2_in_error
 
         # 勾配の計算(アイテムごとの微分を足し合わせる)
+        # print(w_1_gradient)
+        # print(w_1_error)
         w_1_gradient += w_1_error
         b_1_gradient += b_1_error
         w_2_gradient += w_2_error
@@ -151,10 +153,10 @@ class ZeroOneNNW:
             b_1_gradient (np.ndarray): 出力層への重みの勾配
             b_2_gradient (np.ndarray): 出力層へのバイアスの勾配
         """
-        self.w_1 += eta * w_1_gradient
-        self.w_2 += eta * w_2_gradient
-        self.b_1 += eta * b_1_gradient
-        self.b_2 += eta * b_2_gradient
+        self.w_1 -= eta * w_1_gradient
+        self.w_2 -= eta * w_2_gradient
+        self.b_1 -= eta * b_1_gradient
+        self.b_2 -= eta * b_2_gradient
 
     def predict(self,
                 test_data: List[List[int]]) -> List[Tuple[int, float, float]]:
@@ -170,7 +172,7 @@ class ZeroOneNNW:
         for i, t_data in enumerate(test_data):
             self.__forward(t_data, i)
             label = 0 if self.layer_3_out[0] > self.layer_3_out[1] else 1
-            ret_list.append(label, self.layer_3_out[0], self.layer_3_out[1])
+            ret_list.append([label, self.layer_3_out[0], self.layer_3_out[1]])
         return ret_list
 
     def __initialize_layer(self):
@@ -182,7 +184,7 @@ class ZeroOneNNW:
         self.layer_3_in *= 0
         self.layer_3_out *= 0
 
-    def __sigmoid(x: np.ndarray) -> np.ndarray:
+    def __sigmoid(self, x: np.ndarray) -> np.ndarray:
         return 1 / (1 + np.exp(-x))
 
     def __derivative_sigmoid(self, x: np.ndarray) -> np.ndarray:
